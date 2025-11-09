@@ -166,9 +166,16 @@ class Game {
         }
 
         const rotation = getOrientationRotation(this.requiredOrientation);
-        this.board.boardElement.style.transform = `rotate(${rotation}deg)`;
-        this.board.boardElement.style.setProperty('--candy-rotation', `${-rotation}deg`);
-        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`; // Keep combo display upright
+        // Rotate the container, not the board itself
+        this.ui.gameBoardContainer.style.transform = `rotate(${rotation}deg)`;
+        
+        // Rotate each candy individually so it appears upright
+        this.board.boardElement.querySelectorAll('.candy').forEach(candy => {
+            candy.style.transform = `rotate(${-rotation}deg)`;
+        });
+        
+        // Combo display still needs its own rotation, but relative to the already rotating container
+        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`;
         this.inputHandler.setRotation(rotation);
 
         this.checkOrientationMatch();

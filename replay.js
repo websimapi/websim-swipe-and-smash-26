@@ -66,22 +66,29 @@ export default class Replay {
         const requiredIndicator = document.getElementById('replay-required-orientation-indicator');
         const currentIndicator = document.getElementById('replay-orientation-indicator');
         const board = document.getElementById('replay-board');
+        const container = document.getElementById('replay-container');
         const combo = document.getElementById('replay-combo-display');
 
         const rotation = getOrientationRotation(this.state.lastRequiredOrientation);
         
+        if (container) {
+            container.style.transform = `rotate(${rotation}deg)`;
+        }
+
         if (requiredIndicator) {
             requiredIndicator.style.backgroundColor = getOrientationColor(this.state.lastRequiredOrientation);
-            requiredIndicator.style.transform = `rotate(${rotation}deg)`;
         }
          if (currentIndicator) {
             currentIndicator.style.backgroundColor = getOrientationColor(this.state.lastCurrentOrientation);
-            currentIndicator.style.transform = `rotate(${rotation}deg)`;
         }
+
         if (board) {
-            board.style.transform = `rotate(${rotation}deg)`;
-            board.style.setProperty('--candy-rotation', `${-rotation}deg`);
+            // Also rotate candies on replay board
+            board.querySelectorAll('.replay-candy').forEach(candy => {
+                candy.style.transform = `rotate(${-rotation}deg)`;
+            });
         }
+
         if (combo) {
             // Re-apply combo transform based on its state
             const isRainbow = combo.classList.contains('rainbow');
