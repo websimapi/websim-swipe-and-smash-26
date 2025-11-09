@@ -2,6 +2,28 @@ import Board from './board.js';
 import * as recorder from './recorder.js';
 import { playSound, playBackgroundMusic } from './audio.js';
 
+const ORIENTATIONS = ['portrait-primary', 'landscape-primary', 'portrait-secondary', 'landscape-secondary'];
+
+function getOrientationColor(orientation) {
+    switch (orientation) {
+        case 'portrait-primary': return '#4285F4'; // Blue
+        case 'landscape-primary': return '#34A853'; // Green
+        case 'portrait-secondary': return '#EA4335'; // Red
+        case 'landscape-secondary': return '#FBBC05'; // Yellow
+        default: return '#ccc';
+    }
+}
+
+function getOrientationRotation(orientation) {
+    switch (orientation) {
+        case 'portrait-primary': return 0;
+        case 'landscape-primary': return 90;
+        case 'portrait-secondary': return 180;
+        case 'landscape-secondary': return -90;
+        default: return 0;
+    }
+}
+
 export default class Replay {
     constructor(game, config) {
         this.game = game;
@@ -38,6 +60,33 @@ export default class Replay {
         }
     }
 
+    updateReplayOrientation(orientation) {
+        const indicator = document.getElementById('replay-required-orientation-indicator');
+        const board = document.getElementById('replay-board');
+        const combo = document.getElementById('replay-combo-display');
+
+        const color = getOrientationColor(orientation);
+        const rotation = getOrientationRotation(orientation);
+
+        if (indicator) {
+            indicator.style.backgroundColor = color;
+        }
+        if (board) {
+            board.style.transform = `rotate(${rotation}deg)`;
+        }
+        if (combo) {
+            // Re-apply combo transform based on its state
+            const isRainbow = combo.classList.contains('rainbow');
+            const isVisible = combo.classList.contains('visible');
+            let scale = 'scale(0.8)';
+            if (isVisible && !isRainbow) scale = 'scale(1.2)';
+            if (isRainbow) scale = 'scale(1)';
+
+            const translate = isRainbow ? 'translate(0, 0)' : 'translate(-50%, -50%)';
+            combo.style.transform = `${translate} rotate(${rotation}deg) ${scale}`;
+        }
+    }
+
     showControls() {
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.classList.add('visible');
@@ -68,6 +117,9 @@ export default class Replay {
         if (comboDisplay) {
             comboDisplay.remove();
         }
+
+        // Reset orientation on hide
+        this.updateReplayOrientation('portrait-primary');
 
         // Force cleanup of any lingering replay candy elements
         const lingeringCandies = document.querySelectorAll('.replay-candy');
@@ -165,6 +217,8 @@ export default class Replay {
                     }
                 } else if (action.type === 'initialCascade') {
                     await replayBoard.processMatches(false, null);
+                } else if (action.type === 'orientationChange') {
+                    this.updateReplayOrientation(action.orientation);
                 } else if (action.type === 'sound') {
                     playSound(action.name);
                 } else if (action.type === 'startRainbow') {
@@ -255,6 +309,20 @@ export default class Replay {
 
         comboDisplay.textContent = `Combo x${count}`;
         comboDisplay.classList.add('visible');
+
+        // We need to find the *current* orientation to apply the correct rotation transform.
+        const recording = recorder.getRecording();
+        let lastOrientation = 'portrait-primary';
+        if (recording && recording.actions) {
+            const timeSoFar = performance.now() - this.state.startTime;
+            const lastOrientationAction = [...recording.actions]
+                .reverse()
+                .find(a => a.type === 'orientationChange' && a.timestamp <= timeSoFar);
+            if (lastOrientationAction) {
+                lastOrientation = lastOrientationAction.orientation;
+            }
+        }
+        this.updateReplayOrientation(lastOrientation); // This will handle rotation
 
         if (isRainbow) {
             comboDisplay.classList.add('rainbow');

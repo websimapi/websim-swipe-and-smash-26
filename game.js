@@ -158,6 +158,10 @@ class Game {
         this.requiredOrientation = possibleOrientations[Math.floor(Math.random() * possibleOrientations.length)];
         this.requiredOrientationIndicator.style.backgroundColor = getOrientationColor(this.requiredOrientation);
 
+        if (this.isRecordingStarted) {
+            recorder.recordAction({ type: 'orientationChange', orientation: this.requiredOrientation });
+        }
+
         const rotation = getOrientationRotation(this.requiredOrientation);
         this.board.boardElement.style.transform = `rotate(${rotation}deg)`;
         this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(0.8)`;

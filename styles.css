@@ -358,6 +358,20 @@ h1 {
     transition: filter 0.5s ease;
 }
 
+#replay-required-orientation-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ccc; /* Default color */
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    z-index: 210; /* Make sure it's above the board */
+    transition: background-color 0.3s ease;
+}
+
 #replay-container.rainbow-mode {
     animation: rainbow-cycle 5s linear infinite;
 }
@@ -371,6 +385,7 @@ h1 {
     border-radius: 10px;
     width: 100%;
     aspect-ratio: 1 / 1;
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
 #replay-controls {
