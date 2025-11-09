@@ -261,9 +261,14 @@ h1 {
     background-position: center;
     cursor: pointer;
     position: absolute;
-    transition: top 0.3s ease, left 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+    transition: top 0.3s ease, left 0.3s ease, transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
     will-change: top, left, transform; /* Performance hint for browsers */
     transform-origin: center center;
+}
+
+.candy.lifting {
+    transform: scale(1.1) translateZ(20px) !important;
+    transition: transform 0.3s ease-out;
 }
 
 .candy.selected {

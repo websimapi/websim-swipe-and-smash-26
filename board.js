@@ -10,11 +10,6 @@ export default class Board {
         this.onMatch = onMatch;
         this.getNewCandyType = getNewCandyType;
         this.getIsPaused = getIsPaused;
-        this.rotation = 0;
-    }
-
-    setRotation(degrees) {
-        this.rotation = degrees;
     }
 
     pausableTimeout(duration) {
@@ -72,38 +67,17 @@ export default class Board {
         candy.style.width = `${candySize}px`;
         candy.style.height = `${candySize}px`;
         
-        const startPos = this.getOffscreenStart(row, col, candySize);
-
         if (isInitializing) {
             candy.style.top = `${row * candySize}px`;
             candy.style.left = `${col * candySize}px`;
         } else {
-            // Start above the board for drop-in animation, respecting rotation
-            candy.style.top = `${startPos.top}px`;
-            candy.style.left = `${startPos.left}px`;
+            // Start above the board for drop-in animation
+            candy.style.top = `${-candySize}px`;
+            candy.style.left = `${col * candySize}px`;
         }
 
         this.boardElement.appendChild(candy);
         return candy;
-    }
-
-    getOffscreenStart(row, col, candySize) {
-        let top = -candySize, left = col * candySize; // Default: top
-        switch (this.rotation) {
-            case 90: // right
-                top = row * candySize;
-                left = this.size * candySize;
-                break;
-            case 180: // bottom
-                top = this.size * candySize;
-                left = col * candySize;
-                break;
-            case -90: // left
-                top = row * candySize;
-                left = -candySize;
-                break;
-        }
-        return { top, left };
     }
 
     async swapCandies(candy1, candy2) {
@@ -372,66 +346,20 @@ export default class Board {
     }
 
     async dropCandies() {
-        const candySize = this.boardElement.clientWidth / this.size;
-
-        if (this.rotation === 0) { // Gravity: top to bottom
-            for (let c = 0; c < this.size; c++) {
-                let emptyRow = this.size - 1;
-                for (let r = this.size - 1; r >= 0; r--) {
-                    if (this.grid[r][c]) {
-                        if (emptyRow !== r) {
-                            this.grid[emptyRow][c] = this.grid[r][c];
-                            this.grid[r][c] = null;
-                            this.grid[emptyRow][c].dataset.row = emptyRow;
-                            this.grid[emptyRow][c].style.top = `${emptyRow * candySize}px`;
-                        }
-                        emptyRow--;
+        for (let c = 0; c < this.size; c++) {
+            let emptyRow = this.size - 1;
+            for (let r = this.size - 1; r >= 0; r--) {
+                if (this.grid[r][c]) {
+                    if (emptyRow !== r) {
+                        // Move candy down
+                        this.grid[emptyRow][c] = this.grid[r][c];
+                        this.grid[r][c] = null;
+                        this.grid[emptyRow][c].dataset.row = emptyRow;
+                        
+                        const candySize = this.boardElement.clientWidth / this.size;
+                        this.grid[emptyRow][c].style.top = `${emptyRow * candySize}px`;
                     }
-                }
-            }
-        } else if (this.rotation === 90) { // Gravity: right to left
-            for (let r = 0; r < this.size; r++) {
-                let emptyCol = 0;
-                for (let c = 0; c < this.size; c++) {
-                    if (this.grid[r][c]) {
-                        if (emptyCol !== c) {
-                            this.grid[r][emptyCol] = this.grid[r][c];
-                            this.grid[r][c] = null;
-                            this.grid[r][emptyCol].dataset.col = emptyCol;
-                            this.grid[r][emptyCol].style.left = `${emptyCol * candySize}px`;
-                        }
-                        emptyCol++;
-                    }
-                }
-            }
-        } else if (this.rotation === 180) { // Gravity: bottom to top
-            for (let c = 0; c < this.size; c++) {
-                let emptyRow = 0;
-                for (let r = 0; r < this.size; r++) {
-                    if (this.grid[r][c]) {
-                        if (emptyRow !== r) {
-                            this.grid[emptyRow][c] = this.grid[r][c];
-                            this.grid[r][c] = null;
-                            this.grid[emptyRow][c].dataset.row = emptyRow;
-                            this.grid[emptyRow][c].style.top = `${emptyRow * candySize}px`;
-                        }
-                        emptyRow++;
-                    }
-                }
-            }
-        } else if (this.rotation === -90) { // Gravity: left to right
-            for (let r = 0; r < this.size; r++) {
-                let emptyCol = this.size - 1;
-                for (let c = this.size - 1; c >= 0; c--) {
-                    if (this.grid[r][c]) {
-                        if (emptyCol !== c) {
-                            this.grid[r][emptyCol] = this.grid[r][c];
-                            this.grid[r][c] = null;
-                            this.grid[r][emptyCol].dataset.col = emptyCol;
-                            this.grid[r][emptyCol].style.left = `${emptyCol * candySize}px`;
-                        }
-                        emptyCol--;
-                    }
+                    emptyRow--;
                 }
             }
         }
