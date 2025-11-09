@@ -43,9 +43,9 @@ function getOrientationColor(orientation) {
 function getOrientationRotation(orientation) {
     switch (orientation) {
         case 'portrait-primary': return 0;
-        case 'landscape-primary': return -90; // Rotated left
+        case 'landscape-primary': return 90; // Rotated right
         case 'portrait-secondary': return 180;
-        case 'landscape-secondary': return 90; // Rotated right
+        case 'landscape-secondary': return -90; // Rotated left
         default: return 0;
     }
 }
