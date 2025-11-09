@@ -264,11 +264,13 @@ h1 {
     transition: top 0.3s ease, left 0.3s ease, transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
     will-change: top, left, transform; /* Performance hint for browsers */
     transform-origin: center center;
+    z-index: 10;
 }
 
 .candy.lifting {
-    transform: scale(1.1) translateZ(20px) !important;
-    transition: transform 0.3s ease-out;
+    transition: transform 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out;
+    z-index: 50; /* Make sure lifted candies are on top */
+    transform: scale(1.1) !important;
 }
 
 .candy.selected {

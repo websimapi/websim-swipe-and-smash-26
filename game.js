@@ -166,11 +166,23 @@ class Game {
         }
 
         const rotation = getOrientationRotation(this.requiredOrientation);
-        const candies = this.board.boardElement.querySelectorAll('.candy');
+        const candies = Array.from(this.board.boardElement.querySelectorAll('.candy'));
+        const boardRect = this.ui.gameBoardContainer.getBoundingClientRect();
+        
+        const initialPositions = candies.map(candy => {
+            const rect = candy.getBoundingClientRect();
+            return {
+                candy,
+                top: rect.top - boardRect.top,
+                left: rect.left - boardRect.left,
+            };
+        });
 
-        // 1. Lift candies
-        candies.forEach(candy => {
+        // 1. Lift candies and fix them visually in place
+        initialPositions.forEach(({ candy, top, left }) => {
             candy.classList.add('lifting');
+            candy.style.top = `${top}px`;
+            candy.style.left = `${left}px`;
         });
 
         // Use a short timeout to allow the 'lifting' transform to apply before the main rotation starts.
@@ -178,11 +190,20 @@ class Game {
             // 2. Rotate container
             this.ui.gameBoardContainer.style.transform = `rotate(${rotation}deg)`;
             
-            // 3. Rotate candies in place to stay upright
-            candies.forEach(candy => {
-                candy.classList.remove('lifting'); // Allow the main transition to take over
-                candy.style.transform = `rotate(${-rotation}deg)`;
-            });
+            // 3. After rotation, calculate new positions and drop candies back.
+            setTimeout(() => {
+                candies.forEach(candy => {
+                    candy.classList.remove('lifting');
+                    // Reset inline top/left so they are controlled by grid position again
+                    const r = parseInt(candy.dataset.row);
+                    const c = parseInt(candy.dataset.col);
+                    const candySize = this.board.boardElement.clientWidth / this.board.size;
+                    candy.style.top = `${r * candySize}px`;
+                    candy.style.left = `${c * candySize}px`;
+                    // Rotate candies themselves to stay upright
+                    candy.style.transform = `rotate(${-rotation}deg)`;
+                });
+            }, 800); // This should match the container's transition duration
 
             // Update combo display and input handler rotation
             this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`;
