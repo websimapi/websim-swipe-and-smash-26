@@ -80,6 +80,7 @@ export default class Replay {
         }
         if (board) {
             board.style.transform = `rotate(${rotation}deg)`;
+            board.style.setProperty('--candy-rotation', `${-rotation}deg`);
         }
         if (combo) {
             // Re-apply combo transform based on its state
@@ -90,7 +91,7 @@ export default class Replay {
             if (isRainbow) scale = 'scale(1)';
 
             const translate = isRainbow ? 'translate(0, 0)' : 'translate(-50%, -50%)';
-            combo.style.transform = `${translate} rotate(${rotation}deg) ${scale}`;
+            combo.style.transform = `${translate} rotate(0deg) ${scale}`;
         }
     }
 

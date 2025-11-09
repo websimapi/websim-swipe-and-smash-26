@@ -167,7 +167,8 @@ class Game {
 
         const rotation = getOrientationRotation(this.requiredOrientation);
         this.board.boardElement.style.transform = `rotate(${rotation}deg)`;
-        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(0.8)`;
+        this.board.boardElement.style.setProperty('--candy-rotation', `${-rotation}deg`);
+        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`; // Keep combo display upright
         this.inputHandler.setRotation(rotation);
 
         this.checkOrientationMatch();

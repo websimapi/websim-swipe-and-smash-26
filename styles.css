@@ -261,17 +261,18 @@ h1 {
     background-position: center;
     cursor: pointer;
     position: absolute;
+    transform: rotate(var(--candy-rotation, 0deg));
     transition: top 0.3s ease, left 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
     will-change: top, left, transform; /* Performance hint for browsers */
 }
 
 .candy.selected {
-    transform: scale(1.1);
+    transform: rotate(var(--candy-rotation, 0deg)) scale(1.1);
     filter: drop-shadow(0 0 5px yellow);
 }
 
 .candy.matched {
-    transform: scale(0);
+    transform: rotate(var(--candy-rotation, 0deg)) scale(0);
     opacity: 0;
 }
 
