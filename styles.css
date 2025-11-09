@@ -138,12 +138,6 @@ h1 {
 
 #game-board-container {
     position: relative;
-    transition: filter 0.5s ease;
-}
-
-#game-board-container.orientation-mismatch {
-    filter: grayscale(80%);
-    pointer-events: none; /* Secondary check to prevent interaction */
 }
 
 #game-board-container.rainbow-mode {
@@ -258,6 +252,7 @@ h1 {
     border-radius: 10px;
     width: 100%;
     aspect-ratio: 1 / 1;
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bounce effect */
 }
 
 .candy {

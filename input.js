@@ -11,6 +11,7 @@ export default class InputHandler {
         this.holdTimeout = null;
         this.moved = false;
         this.enabled = false;
+        this.rotation = 0;
 
         // Bind event handlers once to ensure they can be removed correctly
         this.boundHandlePointerDown = this.handlePointerDown.bind(this);
@@ -28,6 +29,10 @@ export default class InputHandler {
         if (!this.enabled) return;
         this.enabled = false;
         this.boardElement.parentElement.removeEventListener('pointerdown', this.boundHandlePointerDown);
+    }
+
+    setRotation(degrees) {
+        this.rotation = degrees;
     }
 
     handlePointerDown(e) {
@@ -72,16 +77,23 @@ export default class InputHandler {
         const swipeThreshold = 20; // Minimum pixels to be considered a swipe
 
         if (this.moved && (Math.abs(dx) > swipeThreshold || Math.abs(dy) > swipeThreshold)) {
+            // Adjust swipe vector for rotation
+            const rad = -this.rotation * (Math.PI / 180); // angle in radians, negated for correct transform
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            const adjustedDx = dx * cos - dy * sin;
+            const adjustedDy = dx * sin + dy * cos;
+
             // A swipe has been detected, determine direction
             let endRow, endCol;
             const startRow = parseInt(this.startCandy.dataset.row);
             const startCol = parseInt(this.startCandy.dataset.col);
 
-            if (Math.abs(dx) > Math.abs(dy)) { // Horizontal swipe
+            if (Math.abs(adjustedDx) > Math.abs(adjustedDy)) { // Horizontal swipe
                 endRow = startRow;
-                endCol = startCol + (dx > 0 ? 1 : -1);
+                endCol = startCol + (adjustedDx > 0 ? 1 : -1);
             } else { // Vertical swipe
-                endRow = startRow + (dy > 0 ? 1 : -1);
+                endRow = startRow + (adjustedDy > 0 ? 1 : -1);
                 endCol = startCol;
             }
 

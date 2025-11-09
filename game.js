@@ -40,6 +40,16 @@ function getOrientationColor(orientation) {
     }
 }
 
+function getOrientationRotation(orientation) {
+    switch (orientation) {
+        case 'portrait-primary': return 0;
+        case 'landscape-primary': return -90; // Rotated left
+        case 'portrait-secondary': return 180;
+        case 'landscape-secondary': return 90; // Rotated right
+        default: return 0;
+    }
+}
+
 class Game {
     constructor() {
         this.board = new Board(config.boardSize, config.candyTypes, this.onMatch.bind(this), this.getNewCandyType.bind(this));
@@ -61,7 +71,7 @@ class Game {
         
         this.inputHandler = new InputHandler(this.board.boardElement, this.onSwap.bind(this), this.onSmash.bind(this));
         
-        this.requiredOrientation = null;
+        this.requiredOrientation = 'portrait-primary';
         this.currentOrientation = null;
         this.requiredOrientationIndicator = document.getElementById('required-orientation-indicator');
         this.orientationRuleInterval = null;
@@ -135,14 +145,11 @@ class Game {
     checkOrientationMatch() {
         if (!this.isGameStarted) return;
         const isMatch = this.currentOrientation === this.requiredOrientation;
-        const boardContainer = document.getElementById('game-board-container');
         
         if (isMatch) {
             this.inputHandler.enable();
-            boardContainer.classList.remove('orientation-mismatch');
         } else {
             this.inputHandler.disable();
-            boardContainer.classList.add('orientation-mismatch');
         }
     }
     
@@ -150,6 +157,12 @@ class Game {
         const possibleOrientations = ORIENTATIONS.filter(o => o !== this.requiredOrientation);
         this.requiredOrientation = possibleOrientations[Math.floor(Math.random() * possibleOrientations.length)];
         this.requiredOrientationIndicator.style.backgroundColor = getOrientationColor(this.requiredOrientation);
+
+        const rotation = getOrientationRotation(this.requiredOrientation);
+        this.board.boardElement.style.transform = `rotate(${rotation}deg)`;
+        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(0.8)`;
+        this.inputHandler.setRotation(rotation);
+
         this.checkOrientationMatch();
     }
 
