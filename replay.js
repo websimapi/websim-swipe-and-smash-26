@@ -39,6 +39,8 @@ export default class Replay {
             startTime: 0,
             actions: [],
             currentReplayBoard: null,
+            lastRequiredOrientation: 'portrait-primary',
+            lastCurrentOrientation: 'portrait-primary',
         };
 
         this.setupUI();
@@ -60,16 +62,21 @@ export default class Replay {
         }
     }
 
-    updateReplayOrientation(orientation) {
-        const indicator = document.getElementById('replay-required-orientation-indicator');
+    updateReplayOrientation() {
+        const requiredIndicator = document.getElementById('replay-required-orientation-indicator');
+        const currentIndicator = document.getElementById('replay-orientation-indicator');
         const board = document.getElementById('replay-board');
         const combo = document.getElementById('replay-combo-display');
 
-        const color = getOrientationColor(orientation);
-        const rotation = getOrientationRotation(orientation);
-
-        if (indicator) {
-            indicator.style.backgroundColor = color;
+        const rotation = getOrientationRotation(this.state.lastRequiredOrientation);
+        
+        if (requiredIndicator) {
+            requiredIndicator.style.backgroundColor = getOrientationColor(this.state.lastRequiredOrientation);
+            requiredIndicator.style.transform = `rotate(${rotation}deg)`;
+        }
+         if (currentIndicator) {
+            currentIndicator.style.backgroundColor = getOrientationColor(this.state.lastCurrentOrientation);
+            currentIndicator.style.transform = `rotate(${rotation}deg)`;
         }
         if (board) {
             board.style.transform = `rotate(${rotation}deg)`;
@@ -119,7 +126,9 @@ export default class Replay {
         }
 
         // Reset orientation on hide
-        this.updateReplayOrientation('portrait-primary');
+        this.state.lastRequiredOrientation = 'portrait-primary';
+        this.state.lastCurrentOrientation = 'portrait-primary';
+        this.updateReplayOrientation();
 
         // Force cleanup of any lingering replay candy elements
         const lingeringCandies = document.querySelectorAll('.replay-candy');
@@ -170,6 +179,9 @@ export default class Replay {
         this.state.startTime = performance.now();
         this.state.actions = [...recording.actions];
         this.state.currentReplayBoard = replayBoard; // Store for resume
+        this.state.lastRequiredOrientation = 'portrait-primary';
+        this.state.lastCurrentOrientation = 'portrait-primary';
+
         playPauseButton.innerHTML = '&#10074;&#10074;'; // Pause icon
         playPauseButton.classList.remove('visible');
         
@@ -218,7 +230,11 @@ export default class Replay {
                 } else if (action.type === 'initialCascade') {
                     await replayBoard.processMatches(false, null);
                 } else if (action.type === 'orientationChange') {
-                    this.updateReplayOrientation(action.orientation);
+                    this.state.lastRequiredOrientation = action.orientation;
+                    this.updateReplayOrientation();
+                } else if (action.type === 'currentOrientationChange') {
+                    this.state.lastCurrentOrientation = action.orientation;
+                    this.updateReplayOrientation();
                 } else if (action.type === 'sound') {
                     playSound(action.name);
                 } else if (action.type === 'startRainbow') {
@@ -322,7 +338,8 @@ export default class Replay {
                 lastOrientation = lastOrientationAction.orientation;
             }
         }
-        this.updateReplayOrientation(lastOrientation); // This will handle rotation
+        // This call will correctly rotate the combo display.
+        this.updateReplayOrientation();
 
         if (isRainbow) {
             comboDisplay.classList.add('rainbow');
@@ -346,7 +363,7 @@ export default class Replay {
         }
         clearTimeout(this.controlsTimeout);
         clearTimeout(this.comboTimeout);
-        this.state = { isPlaying: false, isPaused: false, pauseTime: 0, startTime: 0, actions: [], currentReplayBoard: null };
+        this.state = { isPlaying: false, isPaused: false, pauseTime: 0, startTime: 0, actions: [], currentReplayBoard: null, lastRequiredOrientation: 'portrait-primary', lastCurrentOrientation: 'portrait-primary' };
 
         const playPauseButton = document.getElementById('play-pause-button');
         playPauseButton.innerHTML = '&#9658;'; // Play icon

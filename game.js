@@ -139,6 +139,9 @@ class Game {
 
     onOrientationChange(newOrientation) {
         this.currentOrientation = newOrientation;
+        if (this.isRecordingStarted) {
+            recorder.recordAction({ type: 'currentOrientationChange', orientation: newOrientation });
+        }
         this.checkOrientationMatch();
     }
 
