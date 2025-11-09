@@ -166,12 +166,17 @@ class Game {
         }
 
         const rotation = getOrientationRotation(this.requiredOrientation);
+        this.board.setRotation(rotation);
         // Rotate the container, not the board itself
         this.ui.gameBoardContainer.style.transform = `rotate(${rotation}deg)`;
         
-        // Rotate each candy individually so it appears upright
+        // Let candies rotate with the board, don't counter-rotate them
         this.board.boardElement.querySelectorAll('.candy').forEach(candy => {
-            candy.style.transform = `rotate(${-rotation}deg)`;
+            // Keep existing transforms like scale, but remove rotation
+            const currentTransform = candy.style.transform;
+            if (currentTransform.includes('rotate')) {
+                 candy.style.transform = currentTransform.replace(/rotate\([^)]+\)/, '').trim();
+            }
         });
         
         // Combo display still needs its own rotation, but relative to the already rotating container
