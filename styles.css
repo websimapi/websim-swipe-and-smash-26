@@ -21,7 +21,7 @@ body {
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
     z-index: 200;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out, bottom 0.5s ease-in-out;
 }
 
 #required-orientation-indicator {
@@ -35,7 +35,7 @@ body {
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
     z-index: 200;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out, bottom 0.5s ease-in-out;
 }
 
 #game-container {
@@ -138,7 +138,7 @@ h1 {
 
 #game-board-container {
     position: relative;
-    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bounce effect */
+    /* transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); */ /* Bounce effect removed */
 }
 
 #game-board-container.rainbow-mode {
@@ -253,6 +253,7 @@ h1 {
     border-radius: 10px;
     width: 100%;
     aspect-ratio: 1 / 1;
+    transition: border-color 0.3s ease;
 }
 
 .candy {
@@ -261,16 +262,9 @@ h1 {
     background-position: center;
     cursor: pointer;
     position: absolute;
-    transition: top 0.3s ease, left 0.3s ease, transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
+    transition: top 0.3s ease, left 0.3s ease, transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease;
     will-change: top, left, transform; /* Performance hint for browsers */
     transform-origin: center center;
-    z-index: 10;
-}
-
-.candy.lifting {
-    transition: transform 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out;
-    z-index: 50; /* Make sure lifted candies are on top */
-    transform: scale(1.1) !important;
 }
 
 .candy.selected {
@@ -363,7 +357,7 @@ h1 {
     border-radius: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,0.2);
     border: 5px solid #fff;
-    transition: filter 0.5s ease, transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    /* transition: filter 0.5s ease, transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); */
 }
 
 #replay-orientation-indicator {
@@ -377,7 +371,7 @@ h1 {
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
     z-index: 210; /* Make sure it's above the board */
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out, bottom 0.5s ease-in-out;
 }
 
 #replay-required-orientation-indicator {
@@ -391,7 +385,7 @@ h1 {
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
     z-index: 210; /* Make sure it's above the board */
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out, bottom 0.5s ease-in-out;
 }
 
 #replay-container.rainbow-mode {
@@ -407,6 +401,7 @@ h1 {
     border-radius: 10px;
     width: 100%;
     aspect-ratio: 1 / 1;
+    transition: border-color 0.3s ease;
 }
 
 #replay-controls {

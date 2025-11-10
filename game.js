@@ -45,8 +45,18 @@ function getOrientationRotation(orientation) {
         case 'portrait-primary': return 0;
         case 'landscape-primary': return 90; // Rotated right
         case 'portrait-secondary': return 180;
-        case 'landscape-secondary': return -90; // Rotated left
+        case 'landscape-secondary': return 270; // Rotated left (use 270 for simpler math)
         default: return 0;
+    }
+}
+
+function getIndicatorPosition(orientation) {
+    switch (orientation) {
+        case 'portrait-primary': return { top: '-5px', left: '-5px', right: 'auto', bottom: 'auto' };
+        case 'landscape-primary': return { top: '-5px', right: '-5px', left: 'auto', bottom: 'auto' };
+        case 'portrait-secondary': return { bottom: '-5px', right: '-5px', top: 'auto', left: 'auto' };
+        case 'landscape-secondary': return { bottom: '-5px', left: '-5px', top: 'auto', right: 'auto' };
+        default: return { top: '-5px', left: '-5px', right: 'auto', bottom: 'auto' };
     }
 }
 
@@ -61,7 +71,8 @@ class Game {
         this.comboCount = 0;
         this.smashValue = config.initialSmashValue;
         this.smashProgress = 0; // 0, 0.5
-        this.orientationHandler = new OrientationHandler(document.getElementById('orientation-indicator'), this.onOrientationChange.bind(this));
+        this.orientationIndicator = document.getElementById('orientation-indicator');
+        this.orientationHandler = new OrientationHandler(this.orientationIndicator, this.onOrientationChange.bind(this));
         this.timer = new GameTimer(config.timerDuration, document.getElementById('timer'), this.onTimerEnd.bind(this));
         this.ui = new UI({ onStartGame: this.onStartGame.bind(this) });
         
@@ -138,7 +149,15 @@ class Game {
     }
 
     onOrientationChange(newOrientation) {
+        if (this.currentOrientation === newOrientation) return;
         this.currentOrientation = newOrientation;
+        
+        const color = getOrientationColor(newOrientation);
+        this.board.boardElement.style.borderColor = color;
+        
+        const pos = getIndicatorPosition(newOrientation);
+        Object.assign(this.orientationIndicator.style, pos);
+
         if (this.isRecordingStarted) {
             recorder.recordAction({ type: 'currentOrientationChange', orientation: newOrientation });
         }
@@ -160,56 +179,31 @@ class Game {
         const possibleOrientations = ORIENTATIONS.filter(o => o !== this.requiredOrientation);
         this.requiredOrientation = possibleOrientations[Math.floor(Math.random() * possibleOrientations.length)];
         this.requiredOrientationIndicator.style.backgroundColor = getOrientationColor(this.requiredOrientation);
+        
+        const requiredPos = getIndicatorPosition(this.requiredOrientation);
+        Object.assign(this.requiredOrientationIndicator.style, requiredPos);
 
         if (this.isRecordingStarted) {
             recorder.recordAction({ type: 'orientationChange', orientation: this.requiredOrientation });
         }
 
         const rotation = getOrientationRotation(this.requiredOrientation);
-        const candies = Array.from(this.board.boardElement.querySelectorAll('.candy'));
-        const boardRect = this.ui.gameBoardContainer.getBoundingClientRect();
+        // this.ui.gameBoardContainer.style.transform = `rotate(${rotation}deg)`; // No longer rotating container
+        this.board.setRotation(rotation);
         
-        const initialPositions = candies.map(candy => {
-            const rect = candy.getBoundingClientRect();
-            return {
-                candy,
-                top: rect.top - boardRect.top,
-                left: rect.left - boardRect.left,
-            };
+        // Rotate each candy individually so it appears facing the new "up"
+        this.board.boardElement.querySelectorAll('.candy').forEach(candy => {
+            // Preserve existing transforms like scale, and add rotation
+            const currentTransform = candy.style.transform;
+            const existingTransforms = currentTransform.replace(/rotate\([^)]+\)/g, '').trim();
+            candy.style.transform = `${existingTransforms} rotate(${rotation}deg)`;
         });
+        
+        // Combo display still needs its own rotation, but relative to the already rotating container
+        this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`;
+        this.inputHandler.setRotation(rotation);
 
-        // 1. Lift candies and fix them visually in place
-        initialPositions.forEach(({ candy, top, left }) => {
-            candy.classList.add('lifting');
-            candy.style.top = `${top}px`;
-            candy.style.left = `${left}px`;
-        });
-
-        // Use a short timeout to allow the 'lifting' transform to apply before the main rotation starts.
-        setTimeout(() => {
-            // 2. Rotate container
-            this.ui.gameBoardContainer.style.transform = `rotate(${rotation}deg)`;
-            
-            // 3. After rotation, calculate new positions and drop candies back.
-            setTimeout(() => {
-                candies.forEach(candy => {
-                    candy.classList.remove('lifting');
-                    // Reset inline top/left so they are controlled by grid position again
-                    const r = parseInt(candy.dataset.row);
-                    const c = parseInt(candy.dataset.col);
-                    const candySize = this.board.boardElement.clientWidth / this.board.size;
-                    candy.style.top = `${r * candySize}px`;
-                    candy.style.left = `${c * candySize}px`;
-                    // Rotate candies themselves to stay upright
-                    candy.style.transform = `rotate(${-rotation}deg)`;
-                });
-            }, 800); // This should match the container's transition duration
-
-            // Update combo display and input handler rotation
-            this.ui.comboDisplay.style.transform = `translate(-50%, -50%) rotate(0deg) scale(0.8)`;
-            this.inputHandler.setRotation(rotation);
-            this.checkOrientationMatch();
-        }, 50); // A small delay is enough
+        this.checkOrientationMatch();
     }
 
     onTimerEnd() {

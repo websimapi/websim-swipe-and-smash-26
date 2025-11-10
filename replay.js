@@ -19,8 +19,18 @@ function getOrientationRotation(orientation) {
         case 'portrait-primary': return 0;
         case 'landscape-primary': return 90;
         case 'portrait-secondary': return 180;
-        case 'landscape-secondary': return -90;
+        case 'landscape-secondary': return 270; // Use 270 instead of -90 for consistency
         default: return 0;
+    }
+}
+
+function getIndicatorPosition(orientation) {
+    switch (orientation) {
+        case 'portrait-primary': return { top: '-5px', left: '-5px', right: 'auto', bottom: 'auto' };
+        case 'landscape-primary': return { top: '-5px', right: '-5px', left: 'auto', bottom: 'auto' };
+        case 'portrait-secondary': return { bottom: '-5px', right: '-5px', top: 'auto', left: 'auto' };
+        case 'landscape-secondary': return { bottom: '-5px', left: '-5px', top: 'auto', right: 'auto' };
+        default: return { top: '-5px', left: '-5px', right: 'auto', bottom: 'auto' };
     }
 }
 
@@ -72,20 +82,25 @@ export default class Replay {
         const rotation = getOrientationRotation(this.state.lastRequiredOrientation);
         
         if (container) {
-            container.style.transform = `rotate(${rotation}deg)`;
+            // container.style.transform = `rotate(${rotation}deg)`; // No longer rotating container
         }
 
         if (requiredIndicator) {
             requiredIndicator.style.backgroundColor = getOrientationColor(this.state.lastRequiredOrientation);
+            const requiredPos = getIndicatorPosition(this.state.lastRequiredOrientation);
+            Object.assign(requiredIndicator.style, requiredPos);
         }
          if (currentIndicator) {
             currentIndicator.style.backgroundColor = getOrientationColor(this.state.lastCurrentOrientation);
+            const currentPos = getIndicatorPosition(this.state.lastCurrentOrientation);
+            Object.assign(currentIndicator.style, currentPos);
         }
 
         if (board) {
-            // Also rotate candies on replay board
+            board.style.borderColor = getOrientationColor(this.state.lastCurrentOrientation);
+            // Rotate candies on replay board
             board.querySelectorAll('.replay-candy').forEach(candy => {
-                candy.style.transform = `rotate(${-rotation}deg)`;
+                candy.style.transform = `rotate(${rotation}deg)`;
             });
         }
 
@@ -239,6 +254,8 @@ export default class Replay {
                     await replayBoard.processMatches(false, null);
                 } else if (action.type === 'orientationChange') {
                     this.state.lastRequiredOrientation = action.orientation;
+                    const rotation = getOrientationRotation(action.orientation);
+                    replayBoard.setRotation(rotation);
                     this.updateReplayOrientation();
                 } else if (action.type === 'currentOrientationChange') {
                     this.state.lastCurrentOrientation = action.orientation;
